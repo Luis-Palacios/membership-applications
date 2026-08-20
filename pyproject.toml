@@ -27,3 +27,8 @@ members = [
     "src/petra_smallgroups/data",
     "src/petra_smallgroups/cli",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.4",
+]
