@@ -1,0 +1,8 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Use the latest stable Ruff version
+    rev: v0.11.7
+    hooks:
+      # Hook 1: Blocks commit if linting errors or bugs are found
+      - id: ruff
+      
