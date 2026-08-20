@@ -22,12 +22,6 @@ petra-smallgroups = "petra_smallgroups:main"
 requires = ["uv_build>=0.12.3,<0.13.0"]
 build-backend = "uv_build"
 
-[tool.uv.workspace]
-members = [
-    "src/petra_smallgroups/data",
-    "src/petra_smallgroups/cli",
-]
-
 [dependency-groups]
 dev = [
     "pre-commit>=4.6.2",

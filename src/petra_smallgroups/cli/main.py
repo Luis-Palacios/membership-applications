@@ -3,10 +3,8 @@ from __future__ import annotations
 # from typing import TYPE_CHECKING
 # if TYPE_CHECKING:
 #     from sqlalchemy.engine.result import Result
-from petra_smallgroups.data.src.data.assimilation.database import SessionLocal
-from petra_smallgroups.data.src.data.assimilation.models.membership_applications import (
-    queries,
-)
+from petra_smallgroups.data.assimilation.database import SessionLocal
+from petra_smallgroups.data.assimilation.models.membership_applications import queries
 
 
 def get_current_membership_applications() -> None:

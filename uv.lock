@@ -2,13 +2,6 @@ version = 1
 revision = 3
 requires-python = ">=3.14"
 
-[manifest]
-members = [
-    "cli",
-    "data",
-    "petra-smallgroups",
-]
-
 [[package]]
 name = "annotated-types"
 version = "0.8.0"
@@ -26,16 +19,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/4e/b5/721b8799b04bf9afe
 wheels = [
     { url = "https://files.pythonhosted.org/packages/db/3c/33bac158f8ab7f89b2e59426d5fe2e4f63f7ed25df84c036890172b412b5/cfgv-3.5.0-py2.py3-none-any.whl", hash = "sha256:a8dc6b26ad22ff227d2634a65cb388215ce6cc96bbcc5cfde7641ae87e8dacc0", size = 7445, upload-time = "2025-11-19T20:55:50.744Z" },
 ]
-
-[[package]]
-name = "cli"
-version = "0.1.0"
-source = { editable = "src/petra_smallgroups/cli" }
-
-[[package]]
-name = "data"
-version = "0.1.0"
-source = { editable = "src/petra_smallgroups/data" }
 
 [[package]]
 name = "distlib"

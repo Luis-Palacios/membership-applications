@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Mapped, mapped_column
 
-from petra_smallgroups.data.src.data.assimilation.database import Base
+from petra_smallgroups.data.assimilation.database import Base
 
 
 class MembershipApplication(Base):
