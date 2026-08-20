@@ -1,2 +1,1 @@
-def main() -> None:
-    print("Hello from petra-smallgroups!")
+from .data.src import data as data
