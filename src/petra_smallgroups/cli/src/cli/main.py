@@ -1,16 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from sqlalchemy.engine.result import Result
-
-    from petra_smallgroups.data.src.data.assimilation.models import (
-        MembershipApplication,
-    )
-
-
-from petra_smallgroups.data.src.data.assimilation import SessionLocal
+# from typing import TYPE_CHECKING
+# if TYPE_CHECKING:
+#     from sqlalchemy.engine.result import Result
+from petra_smallgroups.data.src.data.assimilation.database import SessionLocal
 from petra_smallgroups.data.src.data.assimilation.models.membership_applications import (
     queries,
 )
@@ -22,7 +15,7 @@ def get_current_membership_applications() -> None:
     """
 
     with SessionLocal() as s:
-        result: Result[tuple[MembershipApplication]] = s.execute(
+        result = s.execute(
             queries.recent_membership_applications
         )
         for row in result:
