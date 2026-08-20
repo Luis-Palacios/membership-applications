@@ -1,7 +1,7 @@
 # Support Python 3.10+.
 target-version = "py310"
-# Set the maximum line length to 88.
-line-length = 120
+# Set the maximum line length to 110 characters.
+line-length = 110
 
 [lint]
 # Add the `line-too-long` rule to the enforced rule set.
