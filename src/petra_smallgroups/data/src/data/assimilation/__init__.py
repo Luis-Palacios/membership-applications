@@ -1,1 +1,1 @@
-from .database import init_engine
+from .database import init_engine as init_engine

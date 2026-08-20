@@ -1,7 +1,7 @@
 # Support Python 3.10+.
 target-version = "py310"
-# Set the maximum line length to 79.
-line-length = 79
+# Set the maximum line length to 88.
+line-length = 88
 
 [lint]
 # Add the `line-too-long` rule to the enforced rule set.
@@ -12,4 +12,5 @@ extend-select = [
     "TC",
     "N",
     "S",
+    "I",
 ]
