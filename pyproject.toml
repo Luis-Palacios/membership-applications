@@ -7,7 +7,13 @@ authors = [
     { name = "Luis Palacios", email = "lrpalaciosdev@gmail.com" }
 ]
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "pydantic>=2.13.4",
+    "pydantic-settings>=2.15.0",
+    "pyodbc>=5.3.0",
+    "python-dotenv>=1.2.3",
+    "sqlalchemy>=2.0.52",
+]
 
 [project.scripts]
 petra-smallgroups = "petra_smallgroups:main"
@@ -15,3 +21,9 @@ petra-smallgroups = "petra_smallgroups:main"
 [build-system]
 requires = ["uv_build>=0.12.3,<0.13.0"]
 build-backend = "uv_build"
+
+[tool.uv.workspace]
+members = [
+    "src/petra_smallgroups/data",
+    "src/petra_smallgroups/cli",
+]
