@@ -10,5 +10,6 @@ engine: Engine = create_engine(ASSIMILATION_DATABASE_URL, echo=settings.debug)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 class Base(DeclarativeBase):
     pass
