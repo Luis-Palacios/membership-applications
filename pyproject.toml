@@ -28,3 +28,8 @@ dev = [
     "ruff>=0.16.4",
     "ty>=0.0.73",
 ]
+
+[tool.uv.workspace]
+members = [
+    "src/petra_smallgroups/membership_applications_api",
+]
