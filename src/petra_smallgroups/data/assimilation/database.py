@@ -6,7 +6,7 @@ from .config import settings
 ASSIMILATION_DATABASE_URL = str(settings.assimilation_database_url)
 
 # Shared thread-safe connection pool engine
-engine: Engine = create_engine(ASSIMILATION_DATABASE_URL, echo=settings.debug)
+engine: Engine = create_engine(ASSIMILATION_DATABASE_URL, echo=settings.debug, pool_pre_ping=True)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
