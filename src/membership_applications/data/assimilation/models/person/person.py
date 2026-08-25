@@ -2,10 +2,10 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from petra_smallgroups.data.assimilation.database import Base
+from membership_applications.data.assimilation.database import Base
 
 if TYPE_CHECKING:
-    from petra_smallgroups.data.assimilation.models.membership_applications.membership_application import (
+    from membership_applications.data.assimilation.models.membership_applications.membership_application import (  # noqa: E501
         MembershipApplication,
     )
 

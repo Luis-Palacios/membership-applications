@@ -7,8 +7,8 @@ from fastapi import Depends, FastAPI
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from petra_smallgroups.data.assimilation.database import SessionLocal
-from petra_smallgroups.data.assimilation.models.membership_applications.service import (
+from membership_applications.data.assimilation.database import SessionLocal
+from membership_applications.data.assimilation.models.membership_applications.service import (
     get_recent_membership_applications,
 )
 

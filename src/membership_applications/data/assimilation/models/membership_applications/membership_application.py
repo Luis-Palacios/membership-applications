@@ -3,8 +3,8 @@ from datetime import datetime
 from sqlalchemy import DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from petra_smallgroups.data.assimilation.database import Base
-from petra_smallgroups.data.assimilation.models.person.person import Person
+from membership_applications.data.assimilation.database import Base
+from membership_applications.data.assimilation.models.person.person import Person
 
 
 class MembershipApplication(Base):

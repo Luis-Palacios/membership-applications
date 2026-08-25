@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING
 
-from petra_smallgroups.data.query_helpers import all_as, first_as
+from membership_applications.data.query_helpers import all_as, first_as
 
 from .queries import (
     get_recently_generated_membership_applications_query,

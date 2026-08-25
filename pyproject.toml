@@ -1,5 +1,5 @@
 [project]
-name = "petra-smallgroups"
+name = "membership-applications"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
-petra-smallgroups = "petra_smallgroups:main"
+membership-applications = "membership_applications:main"
 
 [build-system]
 requires = ["uv_build>=0.12.3,<0.13.0"]
@@ -31,5 +31,5 @@ dev = [
 
 [tool.uv.workspace]
 members = [
-    "src/petra_smallgroups/membership_applications_api",
+    "src/membership_applications/api",
 ]
