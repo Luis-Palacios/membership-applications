@@ -82,9 +82,7 @@ async def get_recent_applications(
         MembershipApplicationBase(
             application_id=membership_application.id,
             person_id=membership_application.person_id,
-            person_full_name=membership_application.person.first_name
-            + " "
-            + membership_application.person.last_name,
+            person_full_name=membership_application.first_name + " " + membership_application.last_name,
             generated_date=membership_application.generated_date,
             fulfilment_date=membership_application.fulfilment_date,
             is_fulfilled=membership_application.fulfilment_date is not None,
