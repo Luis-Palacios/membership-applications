@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
+
+from petra_smallgroups.data.assimilation.query_helpers import first_as
 
 from .queries import (
     get_recently_generated_membership_applications_query,
@@ -26,6 +28,11 @@ class RecentMembershipApplications:
     end_date: datetime
 
 
+class MostRecentMembershipApplication(NamedTuple):
+    generated_date: datetime
+    id: int
+
+
 def get_recent_membership_applications(
     session: Session, window: timedelta = DEFAULT_RECENT_WINDOW
 ) -> RecentMembershipApplications:
@@ -34,9 +41,9 @@ def get_recent_membership_applications(
     generated application (falls back to now if there are none yet).
     """
     end_date: datetime = datetime.now(tz=timezone.utc)
-    most_recent = session.execute(statement=most_recent_membership_application_query).first()
+    most_recent = first_as(session, most_recent_membership_application_query, MostRecentMembershipApplication)
     if most_recent is not None:
-        end_date = most_recent[0]
+        end_date = most_recent.generated_date
     start_date: datetime = end_date - window
 
     applications: Sequence[MembershipApplication] = session.scalars(
