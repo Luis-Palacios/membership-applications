@@ -1,5 +1,5 @@
 from collections.abc import Generator
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 from enum import Enum
 from typing import Annotated, Any
 
@@ -8,9 +8,8 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from petra_smallgroups.data.assimilation.database import SessionLocal
-from petra_smallgroups.data.assimilation.models.membership_applications.queries import (
-    get_recently_generated_membership_applications_query,
-    most_recent_membership_application_query,
+from petra_smallgroups.data.assimilation.models.membership_applications.service import (
+    get_recent_membership_applications,
 )
 
 app = FastAPI()
@@ -77,19 +76,8 @@ async def root() -> dict[str, str]:
 async def get_recent_applications(
     db: Annotated[Session, Depends(get_assimilation_db)], status: ApplicationStatus | None = None
 ) -> list[ApplicationBase]:
-    most_recent_membership_application_date: datetime = datetime.now(tz=timezone.utc)
-    most_recent_membership_application = db.execute(
-        statement=most_recent_membership_application_query
-    ).first()
-    if most_recent_membership_application is not None:
-        most_recent_membership_application_date = most_recent_membership_application[0]
-    start_date: datetime = most_recent_membership_application_date - timedelta(days=30)
+    result = get_recent_membership_applications(db)
     # TODO: Implement status filter
-    membership_applications = db.scalars(
-        statement=get_recently_generated_membership_applications_query(
-            start_date=start_date, end_date=most_recent_membership_application_date
-        )
-    )
     applications: list[ApplicationBase] = [
         ApplicationBase(
             application_id=membership_application.id,
@@ -99,7 +87,7 @@ async def get_recent_applications(
             fulfilment_date=membership_application.fulfilment_date,
             is_fulfilled=membership_application.fulfilment_date is not None,
         )
-        for membership_application in membership_applications
+        for membership_application in result.applications
     ]
     return applications
 
