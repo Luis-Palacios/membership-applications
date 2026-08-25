@@ -52,14 +52,14 @@ class ApplicationApproval(BaseApplicationManagement):
     approval_comments: str = ""
 
     model_config = {
-        "schema_extra": {"example": {"application_id": 1, "user_id": 123, "approval_comments": "Looks good"}}
+        "json_schema_extra": {"example": {"application_id": 1, "user_id": 123, "approval_comments": "Looks good"}}
     }
 
 
 class ApplicationRejection(BaseApplicationManagement):
     rejected_reason: str = ""
     model_config = {
-        "schema_extra": {
+        "json_schema_extra": {
             "example": {"application_id": 1, "user_id": 123, "rejected_reason": "Incomplete information"}
         }
     }
