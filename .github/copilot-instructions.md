@@ -7,13 +7,13 @@
 - Lint with `uv run ruff check .`. Ruff uses a 110-character limit and additionally enforces annotation, async, type-checking-import, naming, security, and import-sorting rules.
 - Type-check with `uv run ty check`.
 - There is no test suite or test runner configured yet, so no full-suite or single-test command exists. When tests are introduced, add the corresponding `uv run <runner> path/to/test.py::test_name` command here.
-- `uv run membership-applications` invokes the placeholder `membership_applications.main()`. To exercise the existing membership-application query flow, use `uv run python -m membership_applications.cli.main`.
+- `uv run membership-applications` invokes the placeholder `membership_applications.main()`. To exercise the existing membership-application query flow, use `uv run python -m membership_applications.cli.main`. Run the API from the repository root with `uv run --package membership-applications-api fastapi dev src\membership_applications\api\main.py` or `uv run --package membership-applications-api fastapi run src\membership_applications\api\main.py`.
 - The API is a separate uv workspace member at `src/membership_applications/api`; keep its FastAPI dependency and configuration in that member's `pyproject.toml`.
 
 ## Architecture
 
 - The repository's implemented functionality is the assimilation data layer for the existing SQL Server database, plus a CLI and a preliminary membership-applications FastAPI surface. This is a single microservice; `docs/ARCHITECTURE.md` describes its architecture and `docs/ROADMAP.md` tracks the sequence.
-- `data/assimilation/config.py` loads settings from `.env`; importing the data layer requires `ASSIMILATION_DATABASE_URL`. Copy `.env.example` for local configuration and never commit credentials.
+- `data/assimilation/config.py` loads settings from the root `.env` when commands run from the repository root; importing the data layer requires `ASSIMILATION_DATABASE_URL`. Copy the root `.env.example` for local configuration and never commit credentials.
 - `database.py` owns the SQLAlchemy engine, `SessionLocal`, and declarative `Base`. Callers own session lifetime: the CLI uses a context manager, while FastAPI uses the `get_assimilation_db` yield dependency.
 - Keep SQLAlchemy table mappings, selectable query builders, and application-facing services separate:
   - Models map the legacy SQL Server schema exactly, including its original table and column casing.
