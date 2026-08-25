@@ -1,13 +1,18 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING
 
 from petra_smallgroups.data.query_helpers import all_as, first_as
 
 from .queries import (
     get_recently_generated_membership_applications_query,
     most_recent_membership_application_query,
+)
+from .results import (
+    MembershipApplicationSummary,
+    MostRecentMembershipApplication,
+    RecentMembershipApplications,
 )
 
 if TYPE_CHECKING:
@@ -17,26 +22,6 @@ if TYPE_CHECKING:
 
 
 DEFAULT_RECENT_WINDOW = timedelta(days=30)
-
-
-class RecentMembershipApplications(NamedTuple):
-    applications: Sequence[ApplicationMembershipInfo]
-    start_date: datetime
-    end_date: datetime
-
-
-class ApplicationMembershipInfo(NamedTuple):
-    id: int
-    person_id: int
-    generated_date: datetime
-    fulfilment_date: datetime | None
-    first_name: str
-    last_name: str
-
-
-class MostRecentMembershipApplication(NamedTuple):
-    generated_date: datetime
-    id: int
 
 
 def get_recent_membership_applications(
@@ -54,9 +39,9 @@ def get_recent_membership_applications(
         end_date = most_recent.generated_date
     start_date: datetime = end_date - window
 
-    applications: Sequence[ApplicationMembershipInfo] = all_as(
+    applications: Sequence[MembershipApplicationSummary] = all_as(
         session,
         get_recently_generated_membership_applications_query(start_date=start_date, end_date=end_date),
-        cls=ApplicationMembershipInfo,
+        cls=MembershipApplicationSummary,
     )
     return RecentMembershipApplications(applications=applications, start_date=start_date, end_date=end_date)
