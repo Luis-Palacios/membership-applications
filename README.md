@@ -36,14 +36,19 @@ See [docs/ROADMAP.md](docs/ROADMAP.md).
 ## Setup
 
 1. `uv sync` — installs root package and workspace dependencies (including the FastAPI workspace member)
-2. Copy `.env.example` to `.env` and set `ASSIMILATION_DATABASE_URL`
+2. Copy the root `.env.example` to the root `.env` and set `ASSIMILATION_DATABASE_URL`
 
 ## Running
 
-```bash
+Run these commands from the repository root so they load the root `.env`.
+
+```powershell
 # CLI — list recent membership applications
 uv run python -m membership_applications.cli.main
 
 # FastAPI dev server — membership applications API
-uv run fastapi dev src/membership_applications/api/main.py
+uv run --package membership-applications-api fastapi dev src\membership_applications\api\main.py
+
+# FastAPI production-style server — no auto-reload
+uv run --package membership-applications-api fastapi run src\membership_applications\api\main.py
 ```
