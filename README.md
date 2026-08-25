@@ -1,7 +1,6 @@
 # Petra Small Groups Management
 
-This repo will contain the fast api and flask api to handle new members applications and small groups list and reports, for now I'm working
-on the data layer and small cli to quickly test
+A Python project building three microservices alongside an existing church web application. Currently implemented: the SQL Server data layer, a CLI, and a FastAPI surface for membership applications.
 
 ## Overview
 
@@ -13,16 +12,21 @@ This project serves three objectives:
 
 Full target architecture (three microservices, two databases, messaging, deployment): [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
+## What's built so far
+
+- **Data layer** (`src/petra_smallgroups/data/assimilation/`) — SQLAlchemy models, queries, and service for the existing SQL Server (assimilation) database.
+- **CLI** (`src/petra_smallgroups/cli/main.py`) — queries membership applications from the last 30 days and prints them.
+- **Membership Applications API** (`src/petra_smallgroups/membership_applications_api/`) — FastAPI workspace member with endpoints to list recent applications and placeholder approve/reject endpoints.
+
 ## Plan for next steps
 
 See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Main packages
 
-1) Alchemy
-2) FastAPI
-3) Flask
-4) Celery
+- **SQLAlchemy** — ORM for the existing SQL Server database
+- **FastAPI** — REST API for membership applications (Microservice 1)
+- **Pydantic / pydantic-settings** — settings management and request/response schemas
 
 ## Requirements
 
@@ -31,5 +35,15 @@ See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Setup
 
-1) `uv sync`
-2) Setup your own `.env` file
+1. `uv sync` — installs root package and workspace dependencies (including the FastAPI workspace member)
+2. Copy `.env.example` to `.env` and set `ASSIMILATION_DATABASE_URL`
+
+## Running
+
+```bash
+# CLI — list recent membership applications
+uv run python -m petra_smallgroups.cli.main
+
+# FastAPI dev server — membership applications API
+uv run fastapi dev src/petra_smallgroups/membership_applications_api/main.py
+```
