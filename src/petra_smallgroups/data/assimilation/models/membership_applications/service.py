@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, NamedTuple
 
-from petra_smallgroups.data.assimilation.query_helpers import first_as
+from petra_smallgroups.data.query_helpers import first_as
 
 from .queries import (
     get_recently_generated_membership_applications_query,
