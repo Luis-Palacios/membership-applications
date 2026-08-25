@@ -23,9 +23,9 @@ def get_assimilation_db() -> Generator[Session, Any, None]:
         db.close()
 
 
-@app.on_event("startup")
-def startup_event() -> None:
-    print("Starting up the Membership Applications API...")
+# @app.on_event("startup")
+# def startup_event() -> None:
+#     print("Starting up the Membership Applications API...")
 
 
 class ApplicationStatus(str, Enum):
@@ -34,7 +34,7 @@ class ApplicationStatus(str, Enum):
     approved = "Approved"
 
 
-class ApplicationBase(BaseModel):
+class MembershipApplicationBase(BaseModel):
     application_id: int
     person_id: int
     person_full_name: str
@@ -75,14 +75,16 @@ async def root() -> dict[str, str]:
 )
 async def get_recent_applications(
     db: Annotated[Session, Depends(get_assimilation_db)], status: ApplicationStatus | None = None
-) -> list[ApplicationBase]:
+) -> list[MembershipApplicationBase]:
     result = get_recent_membership_applications(db)
     # TODO: Implement status filter
-    applications: list[ApplicationBase] = [
-        ApplicationBase(
+    applications: list[MembershipApplicationBase] = [
+        MembershipApplicationBase(
             application_id=membership_application.id,
             person_id=membership_application.person_id,
-            person_full_name="",
+            person_full_name=membership_application.person.first_name
+            + " "
+            + membership_application.person.last_name,
             generated_date=membership_application.generated_date,
             fulfilment_date=membership_application.fulfilment_date,
             is_fulfilled=membership_application.fulfilment_date is not None,

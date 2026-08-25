@@ -41,7 +41,9 @@ def get_recent_membership_applications(
     generated application (falls back to now if there are none yet).
     """
     end_date: datetime = datetime.now(tz=timezone.utc)
-    most_recent = first_as(session, most_recent_membership_application_query, MostRecentMembershipApplication)
+    most_recent = first_as(
+        session, most_recent_membership_application_query, cls=MostRecentMembershipApplication
+    )
     if most_recent is not None:
         end_date = most_recent.generated_date
     start_date: datetime = end_date - window
