@@ -24,6 +24,13 @@ if TYPE_CHECKING:
 DEFAULT_RECENT_WINDOW = timedelta(days=30)
 
 
+def get_most_recent_membership_application(session: Session) -> MostRecentMembershipApplication | None:
+    """
+    Get the most recently generated membership application, if any exist.
+    """
+    return first_as(session, most_recent_membership_application_query, cls=MostRecentMembershipApplication)
+
+
 def get_recent_membership_applications(
     session: Session, window: timedelta = DEFAULT_RECENT_WINDOW
 ) -> RecentMembershipApplications:
@@ -32,9 +39,7 @@ def get_recent_membership_applications(
     generated application (falls back to now if there are none yet).
     """
     end_date: datetime = datetime.now(tz=timezone.utc)
-    most_recent: MostRecentMembershipApplication | None = first_as(
-        session, most_recent_membership_application_query, cls=MostRecentMembershipApplication
-    )
+    most_recent: MostRecentMembershipApplication | None = get_most_recent_membership_application(session)
     if most_recent is not None:
         end_date = most_recent.generated_date
     start_date: datetime = end_date - window
