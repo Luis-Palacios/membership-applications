@@ -24,10 +24,13 @@ Run commands from the repository root so the data layer loads the root `.env`.
 
 ## Architecture
 
-- Packaging: `pyproject.toml` defines a console script `membership-applications` that maps to `membership_applications:main` (still the placeholder — not yet wired to real logic).
-- `src/membership_applications/cli/main.py` — the actual working code so far: queries membership applications generated in the last 30 days from the assimilation DB.
+- Packaging: `pyproject.toml` defines a console script `membership-applications` that maps to `membership_applications:main` (still the placeholder — not yet wired to real logic). `src/membership_applications/api` is a separate `uv` workspace member with its own `pyproject.toml`.
+- `src/membership_applications/cli/main.py` — queries membership applications generated in the last 30 days from the assimilation DB and prints them.
+- `src/membership_applications/api/main.py` — FastAPI app: `GET /applications/recents` returns recent applications via the same service layer as the CLI; `POST /applications/approve` and `/applications/reject` are placeholders that don't yet persist status changes.
+- `src/membership_applications/data/query_helpers.py` — `first_as`/`all_as` map SQLAlchemy `Select` rows onto a dataclass or `NamedTuple` by column name.
 - `src/membership_applications/data/assimilation/` — SQLAlchemy data layer for the existing SQL Server DB (the "assimilation" system):
   - `config.py` — pydantic-settings `Settings`, loaded from the root `.env` when commands run from the repository root (see `.env.example`; requires `ASSIMILATION_DATABASE_URL`).
   - `database.py` — SQLAlchemy `engine`, `SessionLocal`, declarative `Base`.
-  - `models/membership_applications/` — the `MembershipApplication` model (maps to existing `MemberShipApplications` table) plus its query builders in `queries.py`.
-- Open design question (see `docs/ROADMAP.md`): whether to wrap this data layer in a repository abstraction before FastAPI is added on top, or call SQLAlchemy directly from API routes.
+  - `models/membership_applications/` — the `MembershipApplication` model (maps to existing `MemberShipApplications` table), `queries.py` (typed `Select` builders), `services.py` (business/query-window logic, e.g. the 30-day recent-applications window), and `results.py` (`NamedTuple` result types).
+  - `models/person/person.py` — the `Person` model (maps to the existing `Persona` table), joined against membership applications.
+- The FastAPI routes call the `services.py` functions directly (no repository abstraction layer) — see `docs/ROADMAP.md` for how that decision was reached and what's still open.

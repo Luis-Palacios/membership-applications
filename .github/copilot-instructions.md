@@ -18,7 +18,7 @@
 - Keep SQLAlchemy table mappings, selectable query builders, and application-facing services separate:
   - Models map the legacy SQL Server schema exactly, including its original table and column casing.
   - `queries.py` constructs typed `Select` expressions.
-  - `service.py` applies business/query-window behavior and returns typed `NamedTuple` results.
+  - `services.py` applies business/query-window behavior and returns `results.py` `NamedTuple` results.
   - `query_helpers.py` maps selected columns into a dataclass or `NamedTuple`; aliases and selected column names must exactly match its constructor field names.
 - The recent-applications service determines the 30-day window relative to the newest persisted application, falling back to the current UTC time if none exists. Preserve that behavior unless deliberately changing the feature contract.
 - The FastAPI approval/rejection endpoints are placeholders; they do not yet persist status changes or publish the future membership-approval event.
