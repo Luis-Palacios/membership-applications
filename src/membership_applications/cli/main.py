@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from membership_applications.data.assimilation.database import SessionLocal
-from membership_applications.data.assimilation.models.membership_applications.service import (
+from membership_applications.data.assimilation.models.membership_applications.services import (
     get_recent_membership_applications,
 )
 
