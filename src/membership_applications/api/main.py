@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from membership_applications.data.assimilation.database import SessionLocal
-from membership_applications.data.assimilation.models.membership_applications.service import (
+from membership_applications.data.assimilation.models.membership_applications.services import (
     get_recent_membership_applications,
 )
 
@@ -52,7 +52,9 @@ class ApplicationApproval(BaseApplicationManagement):
     approval_comments: str = ""
 
     model_config = {
-        "json_schema_extra": {"example": {"application_id": 1, "user_id": 123, "approval_comments": "Looks good"}}
+        "json_schema_extra": {
+            "example": {"application_id": 1, "user_id": 123, "approval_comments": "Looks good"}
+        }
     }
 
 
