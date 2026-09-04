@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 
-from membership_applications.api.routers import applications
+from membership_applications.api.routers import applications, people
 
 app = FastAPI()
 app.include_router(applications.router)
+app.include_router(people.router)
 
 
 # @app.on_event("startup")

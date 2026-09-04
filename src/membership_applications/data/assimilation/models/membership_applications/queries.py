@@ -25,6 +25,28 @@ def get_recently_generated_membership_applications_query(
         .where(MembershipApplication.generated_date.between(start_date, end_date))
         .order_by(MembershipApplication.generated_date.desc())
     )
+    
+def get_detailed_membership_application_query(
+    membership_application_id: int
+) -> Select:
+    """
+    Get detailed information for a specific membership application by its ID.
+    """
+    return (
+        select(
+            MembershipApplication.id,
+            MembershipApplication.person_id,
+            MembershipApplication.generated_date,
+            MembershipApplication.fulfilment_date,
+            MembershipApplication.life_before,
+            MembershipApplication.conversion,
+            MembershipApplication.life_after,
+            Person.first_name,
+            Person.last_name,
+        )
+        .join(Person.membership_applications)
+        .where(MembershipApplication.id == membership_application_id)
+    )
 
 
 most_recent_membership_application_query: Select[tuple[datetime, int]] = (
@@ -32,3 +54,5 @@ most_recent_membership_application_query: Select[tuple[datetime, int]] = (
     .order_by(MembershipApplication.generated_date.desc())
     .limit(limit=1)
 )
+
+
