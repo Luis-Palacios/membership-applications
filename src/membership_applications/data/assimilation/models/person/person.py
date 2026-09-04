@@ -5,6 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from membership_applications.data.assimilation.database import Base
 
 if TYPE_CHECKING:
+    from membership_applications.data.assimilation.models.events.event_person import EventPerson
     from membership_applications.data.assimilation.models.membership_applications.membership_application import (  # noqa: E501
         MembershipApplication,
     )
@@ -23,6 +24,11 @@ class Person(Base):
     sex: Mapped[str] = mapped_column(name="Sexo")
 
     membership_applications: Mapped[list["MembershipApplication"]] = relationship(
+        back_populates="person",
+    )
+
+    events: Mapped[list["EventPerson"]] = relationship(
+        "EventPerson",
         back_populates="person",
     )
 
