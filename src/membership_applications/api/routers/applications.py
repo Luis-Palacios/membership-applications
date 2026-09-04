@@ -18,7 +18,7 @@ router = APIRouter(prefix="/applications", tags=["applications"])
 
 
 @router.get("/recents", name="get_recent_applications", description="Get recent membership applications")
-async def get_recent_applications(
+def get_recent_applications(
     db: Annotated[Session, Depends(get_assimilation_db)], status: ApplicationStatus | None = None
 ) -> list[MembershipApplicationBase]:
     result = get_recent_membership_applications(db)
