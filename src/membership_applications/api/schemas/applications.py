@@ -18,6 +18,13 @@ class MembershipApplicationBase(BaseModel):
     fulfilment_date: datetime | None = None
     is_fulfilled: bool
 
+class MembershipApplicationDetailSchema(MembershipApplicationBase):
+    first_name: str
+    last_name: str
+    life_before: str
+    conversion: str
+    life_after: str
+
 
 class BaseApplicationManagement(BaseModel):
     application_id: int

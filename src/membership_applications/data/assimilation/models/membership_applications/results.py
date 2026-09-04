@@ -20,6 +20,9 @@ class MembershipApplicationSummary(NamedTuple):
     fulfilment_date: datetime | None
     first_name: str
     last_name: str
+    life_before: str
+    conversion: str
+    life_after: str
 
 
 class MostRecentMembershipApplication(NamedTuple):

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from membership_applications.data.query_helpers import all_as, first_as
 
 from .queries import (
+    get_detailed_membership_application_query,
     get_recently_generated_membership_applications_query,
     most_recent_membership_application_query,
 )
@@ -50,3 +51,17 @@ def get_recent_membership_applications(
         cls=MembershipApplicationSummary,
     )
     return RecentMembershipApplications(applications=applications, start_date=start_date, end_date=end_date)
+
+
+def get_membership_application_detail_by_id(
+    session: Session, application_id: int
+) -> MembershipApplicationSummary | None:
+    """
+    Get a membership application by its ID, if it exists.
+    """
+
+    return first_as(
+        session,
+        get_detailed_membership_application_query(membership_application_id=application_id),
+        cls=MembershipApplicationSummary,
+    )
