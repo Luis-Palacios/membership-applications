@@ -17,9 +17,9 @@ class Event(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True, name="Id_Evento")
     name: Mapped[str] = mapped_column(unique=True, index=True, nullable=False, name="Descripcion")
     event_type_id: Mapped[int] = mapped_column(
-        ForeignKey("Tipo_Evento.Id_Tipo_Evento"),
+        ForeignKey("Tipo_Evento.Id_TipoEvento"),
         nullable=False,
-        name="Id_Tipo_Evento",
+        name="Id_Tipo",
     )
 
     date: Mapped[datetime] = mapped_column(nullable=False, name="Fecha")
