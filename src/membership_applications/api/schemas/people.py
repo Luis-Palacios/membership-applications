@@ -1,9 +1,9 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from membership_applications.api.schemas.base import PascalModel
 
 
-class PersonEventSchema(BaseModel):
+class PersonEventSchema(PascalModel):
     event_id: int
     person_id: int
     event_name: str

@@ -17,8 +17,8 @@ from membership_applications.data.assimilation.models.membership_applications.se
 
 if TYPE_CHECKING:
     from membership_applications.data.assimilation.models.membership_applications.results import (
-    MembershipApplicationSummary,
-)
+        MembershipApplicationDetails,
+    )
 
 router = APIRouter(prefix="/applications", tags=["applications"])
 
@@ -64,7 +64,7 @@ async def reject_application(application: ApplicationRejection) -> dict[str, str
 
 @router.get("/{application_id}")
 def get_application(application_id: int, db: SessionDep) -> MembershipApplicationDetailSchema:
-    membership_application: MembershipApplicationSummary | None = get_membership_application_detail_by_id(
+    membership_application: MembershipApplicationDetails | None = get_membership_application_detail_by_id(
         db, application_id=application_id
     )
 

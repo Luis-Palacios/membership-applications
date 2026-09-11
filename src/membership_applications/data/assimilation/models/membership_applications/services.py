@@ -11,6 +11,7 @@ from .queries import (
     most_recent_membership_application_query,
 )
 from .results import (
+    MembershipApplicationDetails,
     MembershipApplicationSummary,
     MostRecentMembershipApplication,
     RecentMembershipApplications,
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
 
-DEFAULT_RECENT_WINDOW = timedelta(days=30)
+DEFAULT_RECENT_WINDOW = timedelta(days=60)
 
 
 def get_most_recent_membership_application(session: Session) -> MostRecentMembershipApplication | None:
@@ -55,7 +56,7 @@ def get_recent_membership_applications(
 
 def get_membership_application_detail_by_id(
     session: Session, application_id: int
-) -> MembershipApplicationSummary | None:
+) -> MembershipApplicationDetails | None:
     """
     Get a membership application by its ID, if it exists.
     """
@@ -63,5 +64,5 @@ def get_membership_application_detail_by_id(
     return first_as(
         session,
         get_detailed_membership_application_query(membership_application_id=application_id),
-        cls=MembershipApplicationSummary,
+        cls=MembershipApplicationDetails,
     )

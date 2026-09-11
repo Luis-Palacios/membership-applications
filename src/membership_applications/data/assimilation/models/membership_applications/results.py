@@ -20,6 +20,14 @@ class MembershipApplicationSummary(NamedTuple):
     fulfilment_date: datetime | None
     first_name: str
     last_name: str
+
+class MembershipApplicationDetails(NamedTuple):
+    id: int
+    person_id: int
+    generated_date: datetime
+    fulfilment_date: datetime | None
+    first_name: str
+    last_name: str
     life_before: str
     conversion: str
     life_after: str

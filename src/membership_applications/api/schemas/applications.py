@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel
+from membership_applications.api.schemas.base import PascalModel
 
 
 class ApplicationStatus(str, Enum):
@@ -10,13 +10,14 @@ class ApplicationStatus(str, Enum):
     approved = "Approved"
 
 
-class MembershipApplicationBase(BaseModel):
+class MembershipApplicationBase(PascalModel):
     application_id: int
     person_id: int
     person_full_name: str
     generated_date: datetime
     fulfilment_date: datetime | None = None
     is_fulfilled: bool
+
 
 class MembershipApplicationDetailSchema(MembershipApplicationBase):
     first_name: str
@@ -26,7 +27,7 @@ class MembershipApplicationDetailSchema(MembershipApplicationBase):
     life_after: str
 
 
-class BaseApplicationManagement(BaseModel):
+class BaseApplicationManagement(PascalModel):
     application_id: int
     user_id: int
 
@@ -34,17 +35,6 @@ class BaseApplicationManagement(BaseModel):
 class ApplicationApproval(BaseApplicationManagement):
     approval_comments: str = ""
 
-    model_config = {
-        "json_schema_extra": {
-            "example": {"application_id": 1, "user_id": 123, "approval_comments": "Looks good"}
-        }
-    }
-
 
 class ApplicationRejection(BaseApplicationManagement):
     rejected_reason: str = ""
-    model_config = {
-        "json_schema_extra": {
-            "example": {"application_id": 1, "user_id": 123, "rejected_reason": "Incomplete information"}
-        }
-    }
