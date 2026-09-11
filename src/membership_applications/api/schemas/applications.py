@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from membership_applications.api.schemas.base import PascalModel
+from membership_applications.api.schemas.base import CamelModel
 
 
 class ApplicationStatus(str, Enum):
@@ -10,7 +10,7 @@ class ApplicationStatus(str, Enum):
     approved = "Approved"
 
 
-class MembershipApplicationBase(PascalModel):
+class MembershipApplicationBase(CamelModel):
     application_id: int
     person_id: int
     person_full_name: str
@@ -27,7 +27,7 @@ class MembershipApplicationDetailSchema(MembershipApplicationBase):
     life_after: str
 
 
-class BaseApplicationManagement(PascalModel):
+class BaseApplicationManagement(CamelModel):
     application_id: int
     user_id: int
 
