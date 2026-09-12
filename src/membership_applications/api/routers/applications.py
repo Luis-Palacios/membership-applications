@@ -1,8 +1,9 @@
 from typing import TYPE_CHECKING
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 
 from membership_applications.api.dependencies import SessionDep
+from membership_applications.api.rate_limit import limiter
 from membership_applications.api.schemas.applications import (
     ApplicationApproval,
     ApplicationRejection,
@@ -44,7 +45,8 @@ def get_recent_applications(
 
 
 @router.post("/approve", name="approve_application", description="Approve a membership application")
-async def approve_application(application: ApplicationApproval) -> dict[str, str]:
+@limiter.limit("10/minute")
+async def approve_application(request: Request, application: ApplicationApproval) -> dict[str, str]:
     return {
         "message": (
             f"Application {application.application_id} approved with comments: "
@@ -54,7 +56,8 @@ async def approve_application(application: ApplicationApproval) -> dict[str, str
 
 
 @router.post("/reject", name="reject_application", description="Reject a membership application")
-async def reject_application(application: ApplicationRejection) -> dict[str, str]:
+@limiter.limit("10/minute")
+async def reject_application(request: Request, application: ApplicationRejection) -> dict[str, str]:
     return {
         "message": (
             f"Application {application.application_id} rejected for reason: {application.rejected_reason}"

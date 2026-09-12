@@ -1,9 +1,11 @@
+from typing import Literal
+
 from pydantic import AnyUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    environment: str = "local"
+    environment: Literal["local", "staging", "production"] = "local"
     debug: bool = True
 
     assimilation_database_url: AnyUrl
