@@ -1,0 +1,17 @@
+import uvicorn
+
+from membership_applications.api.config import api_settings
+
+
+def main() -> None:
+    uvicorn.run(
+        "membership_applications.api.main:app",
+        host="0.0.0.0",  # noqa: S104 -- intentional: binds all interfaces inside a container
+        port=api_settings.port,
+        timeout_keep_alive=api_settings.keep_alive_timeout_seconds,
+        timeout_graceful_shutdown=api_settings.graceful_shutdown_timeout_seconds,
+    )
+
+
+if __name__ == "__main__":
+    main()

@@ -46,9 +46,15 @@ Run these commands from the repository root so they load the root `.env`.
 # CLI — list recent membership applications
 uv run python -m membership_applications.cli.main
 
-# FastAPI dev server — membership applications API
+# FastAPI dev server — use this for day-to-day local development.
+# Auto-reloads on file changes; binds 127.0.0.1:8000; does NOT read
+# PORT / keep-alive / graceful-shutdown from .env (fastapi dev doesn't expose those).
 uv run --package membership-applications-api fastapi dev src\membership_applications\api\main.py
 
-# FastAPI production-style server — no auto-reload
-uv run --package membership-applications-api fastapi run src\membership_applications\api\main.py
+# FastAPI production-style server — no auto-reload. Use this to run/test the app
+# the way it'll behave in staging, production, or Docker (reads PORT, keep-alive
+# and graceful-shutdown timeouts from .env; binds 0.0.0.0).
+uv run --package membership-applications-api python -m membership_applications.api.run
 ```
+
+Request/DB timeouts (connect, query, pool, request, keep-alive, graceful-shutdown, port) are all configurable via `.env` — see `.env.example` for the full list and defaults.
