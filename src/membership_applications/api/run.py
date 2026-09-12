@@ -8,6 +8,7 @@ def main() -> None:
         "membership_applications.api.main:app",
         host="0.0.0.0",  # noqa: S104 -- intentional: binds all interfaces inside a container
         port=api_settings.port,
+        workers=api_settings.workers,
         timeout_keep_alive=api_settings.keep_alive_timeout_seconds,
         timeout_graceful_shutdown=api_settings.graceful_shutdown_timeout_seconds,
     )

@@ -58,3 +58,8 @@ uv run --package membership-applications-api python -m membership_applications.a
 ```
 
 Request/DB timeouts (connect, query, pool, request, keep-alive, graceful-shutdown, port) are all configurable via `.env` — see `.env.example` for the full list and defaults.
+
+## Configuration notes
+
+- **DB connection pool** (`DB_POOL_SIZE`, `DB_MAX_OVERFLOW`) — total connections a single process can hold against SQL Server. Once running as multiple containers, the real ceiling is `(WORKERS x replica count) x (DB_POOL_SIZE + DB_MAX_OVERFLOW)`, and this DB is shared with the existing church web app, so that total needs headroom, not just to stay under SQL Server's hard cap.
+- **`WORKERS`** — uvicorn worker processes in `run.py`. Raising this multiplies the DB pool ceiling above *and* silently changes rate limiting: `slowapi`'s limiter (`src/membership_applications/api/rate_limit.py`) counts in-memory per process, so a "10/minute" route limit becomes "10 x WORKERS per minute" with no error to flag it. Leave at `1` and scale via container replica count once deployed behind an orchestrator (ECS/K8s) instead.
