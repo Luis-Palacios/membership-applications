@@ -10,6 +10,19 @@ class ApiSettings(BaseSettings):
     # Port the production server (run.py) binds to.
     port: int = 8000
 
+    # Uvicorn worker processes for run.py. Each worker is a separate process
+    # with its own SQLAlchemy engine/pool, so total DB connections become
+    # workers x (db_pool_size + db_max_overflow) -- and multiply again by
+    # replica count once this runs as multiple containers. Each worker also
+    # gets its own in-memory rate-limiter counters -- see the warning in
+    # rate_limit.py -- so a "10/minute" limit effectively becomes
+    # "10 x workers per minute", silently, with no error to signal it.
+    # Once deployed behind an orchestrator (ECS/K8s), prefer scaling via
+    # replica count and leave this at 1 -- the orchestrator can health-check
+    # and restart a replica independently, which uvicorn's own multi-worker
+    # mode doesn't do as robustly.
+    workers: int = 1
+
     # Wall-clock cap on handling a single request, regardless of what's slow
     # inside it (e.g. a hung DB call). Enforced by RequestTimeoutMiddleware.
     request_timeout_seconds: float = 30
