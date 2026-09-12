@@ -11,7 +11,10 @@ from sqlalchemy.exc import SQLAlchemyError
 from membership_applications.api.config import api_settings
 from membership_applications.api.dependencies import SessionDep
 from membership_applications.api.logging_config import configure_logging
-from membership_applications.api.middleware import RequestLoggingMiddleware
+from membership_applications.api.middleware import (
+    RequestLoggingMiddleware,
+    RequestTimeoutMiddleware,
+)
 from membership_applications.api.rate_limit import limiter
 from membership_applications.api.routers import applications, people
 from membership_applications.data.assimilation.config import settings
@@ -33,6 +36,9 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIMiddleware)
+app.add_middleware(
+    RequestTimeoutMiddleware, timeout_seconds=api_settings.request_timeout_seconds
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=api_settings.cors_allowed_origins,

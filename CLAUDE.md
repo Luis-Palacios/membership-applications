@@ -15,8 +15,8 @@ This project uses [uv](https://docs.astral.sh/uv/) with the `uv_build` backend (
 - Sync dependencies / create the venv: `uv sync`
 - Run the console script (currently just the placeholder `main()`): `uv run membership-applications`
 - Run the actual membership-applications CLI logic: `uv run python -m membership_applications.cli.main`
-- Run the FastAPI development server: `uv run --package membership-applications-api fastapi dev src\membership_applications\api\main.py`
-- Run the FastAPI production-style server: `uv run --package membership-applications-api fastapi run src\membership_applications\api\main.py`
+- Run the FastAPI development server (use for day-to-day local coding — auto-reloads, binds 127.0.0.1, ignores `PORT`/keep-alive/graceful-shutdown from `.env`): `uv run --package membership-applications-api fastapi dev src\membership_applications\api\main.py`
+- Run the FastAPI production-style server (use to test prod behavior locally, and for staging/production/Docker — no auto-reload, binds 0.0.0.0, reads `PORT` and keep-alive/graceful-shutdown timeouts from `.env`): `uv run --package membership-applications-api python -m membership_applications.api.run` (invokes `uvicorn` directly rather than `fastapi run`, since `fastapi run` can't set those uvicorn-level flags)
 - Build the package: `uv build`
 - Lint: `uv run ruff check .` (config in `ruff.toml`); pre-commit hooks are set up via `.pre-commit-config.yaml`
 
@@ -27,6 +27,9 @@ Run commands from the repository root so the data layer loads the root `.env`.
 - Packaging: `pyproject.toml` defines a console script `membership-applications` that maps to `membership_applications:main` (still the placeholder — not yet wired to real logic). `src/membership_applications/api` is a separate `uv` workspace member with its own `pyproject.toml`.
 - `src/membership_applications/cli/main.py` — queries membership applications generated in the last 30 days from the assimilation DB and prints them.
 - `src/membership_applications/api/main.py` — FastAPI app: `GET /applications/recents` returns recent applications via the same service layer as the CLI; `POST /applications/approve` and `/applications/reject` are placeholders that don't yet persist status changes.
+- `src/membership_applications/api/config.py` — `ApiSettings`: CORS origins, `port`, plus request/keep-alive/graceful-shutdown timeouts (see `.env.example`).
+- `src/membership_applications/api/middleware.py` — `RequestLoggingMiddleware` and `RequestTimeoutMiddleware` (returns 504 past `REQUEST_TIMEOUT_SECONDS`).
+- `src/membership_applications/api/run.py` — production-style entry point (`python -m membership_applications.api.run`, no auto-reload): calls `uvicorn.run()` directly so `port` and keep-alive/graceful-shutdown timeouts from `ApiSettings` take effect. Use `fastapi dev` instead for local coding.
 - `src/membership_applications/data/query_helpers.py` — `first_as`/`all_as` map SQLAlchemy `Select` rows onto a dataclass or `NamedTuple` by column name.
 - `src/membership_applications/data/assimilation/` — SQLAlchemy data layer for the existing SQL Server DB (the "assimilation" system):
   - `config.py` — pydantic-settings `Settings`, loaded from the root `.env` when commands run from the repository root (see `.env.example`; requires `ASSIMILATION_DATABASE_URL`).
