@@ -11,6 +11,8 @@ def main() -> None:
         workers=api_settings.workers,
         timeout_keep_alive=api_settings.keep_alive_timeout_seconds,
         timeout_graceful_shutdown=api_settings.graceful_shutdown_timeout_seconds,
+        limit_concurrency=api_settings.limit_concurrency,
+        backlog=api_settings.backlog,
     )
 
 

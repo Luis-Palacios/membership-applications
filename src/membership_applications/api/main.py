@@ -2,6 +2,7 @@ import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
+import anyio.to_thread
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
@@ -29,6 +30,11 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    # anyio's thread-pool limiter is per-event-loop, so it can only be set
+    # from inside a running event loop -- this startup hook is that place.
+    # Bounds concurrent sync (`def`) route handlers/dependencies; see the
+    # thread_pool_size comment in config.py.
+    anyio.to_thread.current_default_thread_limiter().total_tokens = api_settings.thread_pool_size
     yield
     # Release this process's pooled connections on shutdown (e.g. SIGTERM
     # during a container redeploy/scale-down) instead of relying on the OS
