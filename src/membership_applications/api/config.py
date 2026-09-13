@@ -32,6 +32,37 @@ class ApiSettings(BaseSettings):
     # SIGTERM (e.g. `docker stop`) before it's killed outright.
     graceful_shutdown_timeout_seconds: int = 30
 
+    # slowapi rate-limit spec (see slowapi's own syntax, e.g. "60/minute"),
+    # applied per client IP, per process -- see the in-memory caveat in
+    # rate_limit.py. With workers/replicas above 1 this becomes
+    # "<value> x (workers x replicas)" in practice, silently.
+    default_rate_limit: str = "60/minute"
+
+    # Max simultaneous connections uvicorn will accept before returning 503
+    # to new ones. None means unlimited (uvicorn's own default). This caps
+    # concurrency at the server level, independent of the DB pool -- useful
+    # to fail fast under overload instead of queuing everything behind
+    # db_pool_timeout_seconds.
+    limit_concurrency: int | None = None
+    # Max pending TCP connections the OS will queue once limit_concurrency
+    # (or worker capacity) is saturated, before refusing new ones outright.
+    # 2048 matches uvicorn's own default.
+    backlog: int = 2048
+
+    # Max sync (`def`, not `async def`) route handlers -- and sync
+    # dependencies -- allowed to run concurrently per process. FastAPI runs
+    # these on anyio's default thread pool, not the asyncio event loop
+    # (async def routes bypass this entirely). 40 matches anyio's own
+    # default. Per process, same as db_pool_size/db_max_overflow -- multiply
+    # by workers x replicas for the real total. If this is smaller than
+    # db_pool_size + db_max_overflow, *this* becomes the binding concurrency
+    # limit for sync DB-backed routes instead of the DB pool; if it's
+    # larger, the DB pool stays the bottleneck and raising this further has
+    # no effect. Applied in main.py's lifespan startup hook (not passed to
+    # uvicorn), so unlike limit_concurrency/backlog/workers this one *does*
+    # take effect under `fastapi dev` too, not just run.py.
+    thread_pool_size: int = 40
+
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
