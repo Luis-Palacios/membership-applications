@@ -55,6 +55,9 @@ uv run --package membership-applications-api fastapi dev src\membership_applicat
 # the way it'll behave in staging, production, or Docker (reads PORT, keep-alive
 # and graceful-shutdown timeouts from .env; binds 0.0.0.0).
 uv run --package membership-applications-api python -m membership_applications.api.run
+
+uv run ty check # check typing
+uv run ruff check # check linting
 ```
 
 Request/DB timeouts (connect, query, pool, request, keep-alive, graceful-shutdown, port) are all configurable via `.env` — see `.env.example` for the full list and defaults.

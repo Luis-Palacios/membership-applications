@@ -12,13 +12,17 @@ This is a single microservice for membership applications, sitting alongside an 
 
 This project uses [uv](https://docs.astral.sh/uv/) with the `uv_build` backend (Python >=3.14, pinned via `.python-version`).
 
-- Sync dependencies / create the venv: `uv sync`
+- Sync dependencies / create the venv: `uv sync --all-packages` (plain `uv sync` only syncs the root
+  project's own dependencies, not workspace members like `src/membership_applications/api` — it will
+  silently *uninstall* `fastapi`/`pyjwt`/etc. if they were previously synced in, since they're not a
+  root-level dependency)
 - Run the console script (currently just the placeholder `main()`): `uv run membership-applications`
 - Run the actual membership-applications CLI logic: `uv run python -m membership_applications.cli.main`
 - Run the FastAPI development server (use for day-to-day local coding — auto-reloads, binds 127.0.0.1, ignores `PORT`/`WORKERS`/keep-alive/graceful-shutdown/`limit_concurrency`/`backlog` from `.env`, since it never calls `run.py`'s `uvicorn.run()`): `uv run --package membership-applications-api fastapi dev src\membership_applications\api\main.py`
 - Run the FastAPI production-style server (use whenever a change touches one of the uvicorn-level settings above and you need to see it actually take effect locally, not just for staging/production/Docker — no auto-reload, binds 0.0.0.0, reads `PORT`, `WORKERS`, keep-alive/graceful-shutdown timeouts, and `limit_concurrency`/`backlog` from `.env`): `uv run --package membership-applications-api python -m membership_applications.api.run` (invokes `uvicorn` directly rather than `fastapi run`, since `fastapi run` can't set those uvicorn-level flags)
 - Build the package: `uv build`
 - Lint: `uv run ruff check .` (config in `ruff.toml`); pre-commit hooks are set up via `.pre-commit-config.yaml`
+- Type-check: `uv run ty check` ([`ty`](https://github.com/astral-sh/ty), Astral's type checker — no separate config file yet)
 
 Run commands from the repository root so the data layer loads the root `.env`.
 

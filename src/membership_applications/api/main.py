@@ -3,13 +3,15 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 import anyio.to_thread
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.pool import QueuePool
 
 from membership_applications.api.config import api_settings
 from membership_applications.api.dependencies import SessionDep
@@ -53,8 +55,18 @@ app = FastAPI(
     openapi_url="/openapi.json" if settings.environment == "local" else None,
     lifespan=lifespan,
 )
+def _handle_rate_limit_exceeded(request: Request, exc: Exception) -> Response:
+    # Starlette's add_exception_handler types a per-exception-class handler as accepting the
+    # base Exception (it dispatches by exc_class_or_status_code, not by the handler's own
+    # signature), but slowapi's handler is typed narrower (RateLimitExceeded only). Registering
+    # it against RateLimitExceeded below guarantees exc is always that type at runtime.
+    assert isinstance(exc, RateLimitExceeded)  # noqa: S101 -- type-narrowing only, not a security check
+
+    return _rate_limit_exceeded_handler(request, exc)
+
+
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(RateLimitExceeded, _handle_rate_limit_exceeded)
 app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(
     RequestTimeoutMiddleware, timeout_seconds=api_settings.request_timeout_seconds
@@ -91,6 +103,13 @@ def health_check(db: SessionDep) -> dict[str, object]:
     # than a DB that's actually down, even though both can make requests
     # queue behind db_pool_timeout_seconds.
     pool = engine.pool
+    # engine.pool is statically typed as the abstract Pool base, which doesn't declare
+    # size()/checkedout()/overflow() -- those live on QueuePool. database.py's create_engine()
+    # call passes pool_size/max_overflow/pool_use_lifo/pool_timeout, which SQLAlchemy only
+    # accepts for its default QueuePool (no poolclass override), so this is always QueuePool
+    # at runtime.
+    assert isinstance(pool, QueuePool)  # noqa: S101 -- type-narrowing only, not a security check
+
     return {
         "status": "ok",
         "db_pool": {
