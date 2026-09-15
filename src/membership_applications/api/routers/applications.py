@@ -1,8 +1,9 @@
 from typing import TYPE_CHECKING
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from membership_applications.api.dependencies import SessionDep
+from membership_applications.api.jwt_auth import get_current_claims
 from membership_applications.api.rate_limit import limiter
 from membership_applications.api.schemas.applications import (
     ApplicationApproval,
@@ -21,7 +22,7 @@ if TYPE_CHECKING:
         MembershipApplicationDetails,
     )
 
-router = APIRouter(prefix="/applications", tags=["applications"])
+router = APIRouter(prefix="/applications", tags=["applications"], dependencies=[Depends(get_current_claims)])
 
 
 @router.get("/recents", name="get_recent_applications", description="Get recent membership applications")

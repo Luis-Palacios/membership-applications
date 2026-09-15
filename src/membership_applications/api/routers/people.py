@@ -1,8 +1,9 @@
 from typing import TYPE_CHECKING
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from membership_applications.api.dependencies import SessionDep
+from membership_applications.api.jwt_auth import get_current_claims
 from membership_applications.api.schemas.people import PersonEventSchema
 from membership_applications.data.assimilation.models.person.services import get_person_events
 
@@ -11,7 +12,7 @@ if TYPE_CHECKING:
 
     from membership_applications.data.assimilation.models.person.results import PersonEventResult
 
-router = APIRouter(prefix="/people", tags=["people"])
+router = APIRouter(prefix="/people", tags=["people"], dependencies=[Depends(get_current_claims)])
 
 
 @router.get("/{person_id}/events", description="Retrieve all events associated with a given person.")

@@ -7,6 +7,15 @@ from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 class ApiSettings(BaseSettings):
     cors_allowed_origins: Annotated[list[str], NoDecode] = []
 
+    # Bare origin of auth-server, e.g. "http://localhost:5000" -- no trailing slash, no /api/auth
+    # suffix. Used to build the JWKS URL (auth_server_url + "/api/auth/.well-known/jwks.json") and
+    # as the expected iss/aud on every verified JWT. better-auth derives both from
+    # new URL(BETTER_AUTH_URL).origin, which JS never renders with a trailing slash (verified by
+    # reading better-auth's context/create-context.mjs) -- kept as a plain str rather than
+    # pydantic's AnyUrl, since AnyUrl normalizes a bare origin by *adding* a trailing slash, which
+    # would silently break every iss/aud comparison.
+    auth_server_url: str
+
     # Port the production server (run.py) binds to.
     port: int = 8000
 
@@ -73,6 +82,11 @@ class ApiSettings(BaseSettings):
         if isinstance(value, str):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value
+
+    @field_validator("auth_server_url", mode="after")
+    @classmethod
+    def strip_trailing_slash(cls, value: str) -> str:
+        return value.rstrip("/")
 
 
 api_settings = ApiSettings()
