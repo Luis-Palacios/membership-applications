@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Select, select
+from sqlalchemy import Select, func, select
 
 from ..person.person import Person
 from .membership_application import MembershipApplication
@@ -24,6 +24,17 @@ def get_recently_generated_membership_applications_query(
         .join(Person.membership_applications)
         .where(MembershipApplication.generated_date.between(start_date, end_date))
         .order_by(MembershipApplication.generated_date.desc())
+    )
+
+def get_recently_generated_membership_applications_count_query(
+    start_date: datetime, end_date: datetime
+) -> Select[tuple[int]]:
+    """
+    Get the count of membership applications generated between the specified start and end dates.
+    """
+    return (
+        select(func.count(MembershipApplication.id))
+        .where(MembershipApplication.generated_date.between(start_date, end_date))
     )
     
 def get_detailed_membership_application_query(

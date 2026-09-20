@@ -45,6 +45,19 @@ def get_recent_applications(
     return applications
 
 
+@router.get(
+    "/recents/count",
+    name="get_recent_applications_count",
+    description="Get the count of recent membership applications",
+)
+def get_recent_applications_count(db: SessionDep) -> int:
+    from membership_applications.data.assimilation.models.membership_applications.services import (
+        get_recent_membership_applications_count,
+    )
+
+    return get_recent_membership_applications_count(db)
+
+
 @router.post("/approve", name="approve_application", description="Approve a membership application")
 @limiter.limit("10/minute")
 async def approve_application(request: Request, application: ApplicationApproval) -> dict[str, str]:
