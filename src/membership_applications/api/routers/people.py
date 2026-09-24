@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends
 
 from membership_applications.api.dependencies import SessionDep
 from membership_applications.api.jwt_auth import get_current_claims
+from membership_applications.api.rate_limit import default_user_rate_limit
 from membership_applications.api.schemas.people import PersonEventSchema, PersonFirstAssistanceSchema
 from membership_applications.data.assimilation.models.assistance.results import PersonFirstAssistanceResult
 from membership_applications.data.assimilation.models.assistance.services import get_person_first_assistance
@@ -17,7 +18,11 @@ if TYPE_CHECKING:
     )
     from membership_applications.data.assimilation.models.person.results import PersonEventResult
 
-router = APIRouter(prefix="/people", tags=["people"], dependencies=[Depends(get_current_claims)])
+router = APIRouter(
+    prefix="/people",
+    tags=["people"],
+    dependencies=[Depends(get_current_claims), Depends(default_user_rate_limit)],
+)
 
 
 @router.get("/{person_id}/events", description="Retrieve all events associated with a given person.")

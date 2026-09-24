@@ -3,12 +3,8 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 import anyio.to_thread
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
-from slowapi import _rate_limit_exceeded_handler
-from slowapi.errors import RateLimitExceeded
-from slowapi.middleware import SlowAPIMiddleware
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.pool import QueuePool
@@ -20,7 +16,6 @@ from membership_applications.api.middleware import (
     RequestLoggingMiddleware,
     RequestTimeoutMiddleware,
 )
-from membership_applications.api.rate_limit import limiter
 from membership_applications.api.routers import applications, people
 from membership_applications.data.assimilation.config import settings
 from membership_applications.data.assimilation.database import engine
@@ -55,19 +50,6 @@ app = FastAPI(
     openapi_url="/openapi.json" if settings.environment == "local" else None,
     lifespan=lifespan,
 )
-def _handle_rate_limit_exceeded(request: Request, exc: Exception) -> Response:
-    # Starlette's add_exception_handler types a per-exception-class handler as accepting the
-    # base Exception (it dispatches by exc_class_or_status_code, not by the handler's own
-    # signature), but slowapi's handler is typed narrower (RateLimitExceeded only). Registering
-    # it against RateLimitExceeded below guarantees exc is always that type at runtime.
-    assert isinstance(exc, RateLimitExceeded)  # noqa: S101 -- type-narrowing only, not a security check
-
-    return _rate_limit_exceeded_handler(request, exc)
-
-
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _handle_rate_limit_exceeded)
-app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(
     RequestTimeoutMiddleware, timeout_seconds=api_settings.request_timeout_seconds
 )
@@ -89,7 +71,6 @@ async def root() -> dict[str, str]:
 
 
 @app.get("/health")
-@limiter.exempt
 def health_check(db: SessionDep) -> dict[str, object]:
     try:
         db.execute(text("SELECT 1"))

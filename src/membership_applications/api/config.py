@@ -7,14 +7,21 @@ from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 class ApiSettings(BaseSettings):
     cors_allowed_origins: Annotated[list[str], NoDecode] = []
 
-    # Bare origin of auth-server, e.g. "http://localhost:5000" -- no trailing slash, no /api/auth
-    # suffix. Used to build the JWKS URL (auth_server_url + "/api/auth/.well-known/jwks.json") and
-    # as the expected iss/aud on every verified JWT. better-auth derives both from
-    # new URL(BETTER_AUTH_URL).origin, which JS never renders with a trailing slash (verified by
-    # reading better-auth's context/create-context.mjs) -- kept as a plain str rather than
-    # pydantic's AnyUrl, since AnyUrl normalizes a bare origin by *adding* a trailing slash, which
-    # would silently break every iss/aud comparison.
+    # Bare origin of auth-server as *this service* reaches it, e.g. "http://localhost:5000" locally
+    # or "http://auth-server:5000" over ECS Service Connect -- no trailing slash, no /api/auth
+    # suffix. Only used to build the JWKS URL (auth_server_url + "/api/auth/.well-known/jwks.json");
+    # it is a network address, not an identity, so it says nothing about what's inside a token.
     auth_server_url: str
+
+    # Expected `iss` and `aud` claims on every verified JWT. better-auth derives both from
+    # new URL(BETTER_AUTH_URL).origin, which JS never renders with a trailing slash (verified by
+    # reading better-auth's context/create-context.mjs) -- so these must equal auth-server's
+    # BETTER_AUTH_URL origin *exactly*, i.e. the PUBLIC url (https://staff.example.org in prod),
+    # which differs from auth_server_url once the fetch goes over an internal address. All three
+    # are kept as plain str rather than pydantic's AnyUrl, since AnyUrl normalizes a bare origin
+    # by *adding* a trailing slash, which would silently break every iss/aud comparison.
+    jwt_issuer: str
+    jwt_audience: str
 
     # Port the production server (run.py) binds to.
     port: int = 8000
@@ -41,11 +48,18 @@ class ApiSettings(BaseSettings):
     # SIGTERM (e.g. `docker stop`) before it's killed outright.
     graceful_shutdown_timeout_seconds: int = 30
 
-    # slowapi rate-limit spec (see slowapi's own syntax, e.g. "60/minute"),
-    # applied per client IP, per process -- see the in-memory caveat in
-    # rate_limit.py. With workers/replicas above 1 this becomes
-    # "<value> x (workers x replicas)" in practice, silently.
+    # Default rate limit in `limits` syntax (e.g. "60/minute"), applied per authenticated user
+    # (verified JWT `sub`) across all routes -- see rate_limit.py. With the in-memory store and
+    # workers/replicas above 1 this becomes "<value> x (workers x replicas)" in practice,
+    # silently; see rate_limit_storage_uri below.
     default_rate_limit: str = "60/minute"
+
+    # Where rate-limit counters live, as a `limits` storage URI. "memory://" keeps them in this
+    # process only (fine at 1 worker / 1 replica -- see the caveat in rate_limit.py). For more than
+    # one worker or replica, point every instance at one shared store instead, e.g.
+    # "redis://<host>:6379" (ElastiCache on AWS), or the counters silently multiply by
+    # workers x replicas. Redis also needs the extra installed: `limits[redis]`.
+    rate_limit_storage_uri: str = "memory://"
 
     # Max simultaneous connections uvicorn will accept before returning 503
     # to new ones. None means unlimited (uvicorn's own default). This caps
@@ -83,7 +97,7 @@ class ApiSettings(BaseSettings):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value
 
-    @field_validator("auth_server_url", mode="after")
+    @field_validator("auth_server_url", "jwt_issuer", "jwt_audience", mode="after")
     @classmethod
     def strip_trailing_slash(cls, value: str) -> str:
         return value.rstrip("/")
