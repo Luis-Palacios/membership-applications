@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 
 from membership_applications.api.dependencies import SessionDep
 from membership_applications.api.jwt_auth import get_current_claims
-from membership_applications.api.rate_limit import limiter
+from membership_applications.api.rate_limit import default_user_rate_limit, rate_limit
 from membership_applications.api.schemas.applications import (
     ApplicationApproval,
     ApplicationRejection,
@@ -22,7 +22,11 @@ if TYPE_CHECKING:
         MembershipApplicationDetails,
     )
 
-router = APIRouter(prefix="/applications", tags=["applications"], dependencies=[Depends(get_current_claims)])
+router = APIRouter(
+    prefix="/applications",
+    tags=["applications"],
+    dependencies=[Depends(get_current_claims), Depends(default_user_rate_limit)],
+)
 
 
 @router.get("/recents", name="get_recent_applications", description="Get recent membership applications")
@@ -58,9 +62,13 @@ def get_recent_applications_count(db: SessionDep) -> int:
     return get_recent_membership_applications_count(db)
 
 
-@router.post("/approve", name="approve_application", description="Approve a membership application")
-@limiter.limit("10/minute")
-async def approve_application(request: Request, application: ApplicationApproval) -> dict[str, str]:
+@router.post(
+    "/approve",
+    name="approve_application",
+    description="Approve a membership application",
+    dependencies=[Depends(rate_limit("10/minute", scope="approve"))],
+)
+async def approve_application(application: ApplicationApproval) -> dict[str, str]:
     return {
         "message": (
             f"Application {application.application_id} approved with comments: "
@@ -69,9 +77,13 @@ async def approve_application(request: Request, application: ApplicationApproval
     }
 
 
-@router.post("/reject", name="reject_application", description="Reject a membership application")
-@limiter.limit("10/minute")
-async def reject_application(request: Request, application: ApplicationRejection) -> dict[str, str]:
+@router.post(
+    "/reject",
+    name="reject_application",
+    description="Reject a membership application",
+    dependencies=[Depends(rate_limit("10/minute", scope="reject"))],
+)
+async def reject_application(application: ApplicationRejection) -> dict[str, str]:
     return {
         "message": (
             f"Application {application.application_id} rejected for reason: {application.rejected_reason}"

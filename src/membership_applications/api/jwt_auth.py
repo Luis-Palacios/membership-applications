@@ -40,8 +40,8 @@ def get_current_claims(
             token,
             signing_key.key,
             algorithms=["EdDSA"],
-            issuer=api_settings.auth_server_url,
-            audience=api_settings.auth_server_url,
+            issuer=api_settings.jwt_issuer,
+            audience=api_settings.jwt_audience,
             leeway=10,
         )
         return AuthClaims.model_validate(decoded)
