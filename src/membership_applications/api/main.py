@@ -53,13 +53,14 @@ app = FastAPI(
 app.add_middleware(
     RequestTimeoutMiddleware, timeout_seconds=api_settings.request_timeout_seconds
 )
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=api_settings.cors_allowed_origins,
-    allow_credentials=False,
-    allow_methods=["GET", "POST"],
-    allow_headers=["Authorization", "Content-Type"],
-)
+if api_settings.cors_allowed_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=api_settings.cors_allowed_origins,
+        allow_credentials=False,
+        allow_methods=["GET", "POST"],
+        allow_headers=["Authorization", "Content-Type"],
+    )
 app.add_middleware(RequestLoggingMiddleware)
 app.include_router(applications.router)
 app.include_router(people.router)

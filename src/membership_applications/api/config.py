@@ -5,6 +5,9 @@ from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class ApiSettings(BaseSettings):
+    # Browser origins allowed to call this API cross-origin. Empty (the default) means the CORS
+    # middleware isn't mounted: no browser calls this API today -- staff-app calls it server-side
+    # with a JWT, and /docs is same-origin. Set it only for a browser client on another origin.
     cors_allowed_origins: Annotated[list[str], NoDecode] = []
 
     # Bare origin of auth-server as *this service* reaches it, e.g. "http://localhost:5000" locally
