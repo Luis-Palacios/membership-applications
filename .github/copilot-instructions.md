@@ -1,32 +1,65 @@
 # Copilot Instructions
 
-## Project state and commands
+## Commands
 
-- This is an early-stage Python 3.14 project managed with `uv`; use `uv sync` to install the root project and workspace dependencies.
-- Build the root package with `uv build`.
-- Lint with `uv run ruff check .`. Ruff uses a 110-character limit and additionally enforces annotation, async, type-checking-import, naming, security, and import-sorting rules.
-- Type-check with `uv run ty check`.
-- There is no test suite or test runner configured yet, so no full-suite or single-test command exists. When tests are introduced, add the corresponding `uv run <runner> path/to/test.py::test_name` command here.
-- `uv run membership-applications` invokes the placeholder `membership_applications.main()`. To exercise the existing membership-application query flow, use `uv run python -m membership_applications.cli.main`. Run the API from the repository root with `uv run --package membership-applications-api fastapi dev src\membership_applications\api\main.py` or `uv run --package membership-applications-api fastapi run src\membership_applications\api\main.py`.
-- The API is a separate uv workspace member at `src/membership_applications/api`; keep its FastAPI dependency and configuration in that member's `pyproject.toml`.
+Run commands from the repository root so the data layer reads the root `.env`.
+
+- Install or refresh all workspace dependencies: `uv sync --all-packages`. Plain `uv sync` omits the
+  API workspace member and can remove its dependencies.
+- Build the root package: `uv build`.
+- Lint: `uv run ruff check .`. Ruff uses a 110-character line limit and enforces annotation, async,
+  type-checking-import, naming, security, and import-sorting rules.
+- Type-check: `uv run ty check`.
+- There is no test suite or test runner yet, so neither a full-suite nor a single-test command
+  exists. Add the appropriate `uv run <runner> path\to\test.py::test_name` command here when tests
+  are introduced.
+- The `membership-applications` script is still a placeholder. Run the implemented CLI with
+  `uv run python -m membership_applications.cli.main`.
+- Start the API for day-to-day development with
+  `uv run --package membership-applications-api fastapi dev src\membership_applications\api\main.py`.
+  For production-style behavior, including configured Uvicorn settings, use
+  `uv run --package membership-applications-api python -m membership_applications.api.run`.
 
 ## Architecture
 
-- The repository's implemented functionality is the assimilation data layer for the existing SQL Server database, plus a CLI and a preliminary membership-applications FastAPI surface. This is a single microservice; `docs/ARCHITECTURE.md` describes its architecture and `docs/ROADMAP.md` tracks the sequence.
-- `data/assimilation/config.py` loads settings from the root `.env` when commands run from the repository root; importing the data layer requires `ASSIMILATION_DATABASE_URL`. Copy the root `.env.example` for local configuration and never commit credentials.
-- `database.py` owns the SQLAlchemy engine, `SessionLocal`, and declarative `Base`. Callers own session lifetime: the CLI uses a context manager, while FastAPI uses the `get_assimilation_db` yield dependency.
-- Keep SQLAlchemy table mappings, selectable query builders, and application-facing services separate:
-  - Models map the legacy SQL Server schema exactly, including its original table and column casing.
-  - `queries.py` constructs typed `Select` expressions.
-  - `services.py` applies business/query-window behavior and returns `results.py` `NamedTuple` results.
-  - `query_helpers.py` maps selected columns into a dataclass or `NamedTuple`; aliases and selected column names must exactly match its constructor field names.
-- The recent-applications service determines the 30-day window relative to the newest persisted application, falling back to the current UTC time if none exists. Preserve that behavior unless deliberately changing the feature contract.
-- The FastAPI approval/rejection endpoints are placeholders; they do not yet persist status changes or publish the future membership-approval event.
+- This is a single membership-applications microservice alongside an existing church application.
+  Its current implementation is a synchronous SQL Server assimilation data layer consumed by a CLI
+  and a FastAPI workspace member at `src/membership_applications/api`. The API has its own
+  `pyproject.toml`; keep FastAPI-specific dependencies and configuration there.
+- Settings load from the root `.env`; start with `.env.example`. Importing the assimilation layer
+  requires `ASSIMILATION_DATABASE_URL`. Never commit credentials.
+- `data/assimilation/database.py` owns the SQLAlchemy engine, `SessionLocal`, and declarative
+  `Base`. The CLI owns session lifetime with a context manager; FastAPI routes receive sessions from
+  the `get_assimilation_db` yield dependency.
+- Keep each data feature split across its model, typed `queries.py` query builders, `services.py`
+  application behavior, and `results.py` projected `NamedTuple` values. `query_helpers.py` maps
+  result rows by selected-column name, so selected names (and any necessary aliases) must exactly
+  match result constructor fields. API and CLI callers consume these projected values rather than
+  ORM instances.
+- The recent-membership-application service uses a 60-day window relative to the newest persisted
+  application, falling back to the current UTC time when no applications exist. Preserve that
+  anchor behavior unless changing the feature contract.
+- API routers call services directly; there is intentionally no repository abstraction. Approval
+  and rejection endpoints are placeholders and do not persist status changes or publish events.
 
-## Repository conventions
+## Conventions and operational constraints
 
-- Use modern SQLAlchemy 2.x declarative typing (`Mapped`, `mapped_column`, `relationship`) and explicit `Session` annotations.
-- Keep imports used only for annotations behind `TYPE_CHECKING`, matching the existing data-layer pattern.
-- Use `from __future__ import annotations` in modules that need forward references without runtime imports.
-- Query service result types are `NamedTuple` classes rather than ORM instances, so API and CLI callers consume only the projected fields.
-- Treat `docs/ARCHITECTURE.md` as a target design, not evidence that container deployment, caching, logging, or notifications already exist.
+- Map the legacy SQL Server schema exactly, including its table and column casing. Use modern
+  SQLAlchemy 2.x declarative types (`Mapped`, `mapped_column`, `relationship`) and explicit
+  `Session` annotations.
+- The assimilation layer deliberately uses synchronous SQLAlchemy and `pyodbc`. Database-backed
+  FastAPI handlers must be regular `def` functions so FastAPI runs them in its worker thread pool;
+  do not introduce SQLAlchemy asyncio piecemeal.
+- Keep annotation-only imports under `TYPE_CHECKING`; add `from __future__ import annotations` when
+  forward references avoid runtime imports.
+- Protected API routers authenticate JWTs before applying rate limits. Limits are per verified JWT
+  `sub`; with the default `memory://` storage, counters are per process. Configure a shared
+  `RATE_LIMIT_STORAGE_URI` before increasing `WORKERS` or replicas, or the effective limit
+  multiplies per process.
+- Each Uvicorn worker has its own SQLAlchemy pool. Keep
+  `(workers x replica count) x (DB_POOL_SIZE + DB_MAX_OVERFLOW)` within the shared SQL Server's
+  available capacity. The application lifespan also caps concurrent synchronous handlers with
+  `THREAD_POOL_SIZE`.
+- `docs/ARCHITECTURE.md` describes the target design, not deployed functionality. Use
+  `README.md`, `CLAUDE.md`, and `docs/ROADMAP.md` for the current implementation and near-term
+  scope.
