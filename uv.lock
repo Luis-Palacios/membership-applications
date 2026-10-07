@@ -589,7 +589,6 @@ dependencies = [
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "pyodbc" },
-    { name = "python-dotenv" },
     { name = "sqlalchemy" },
 ]
 
@@ -605,7 +604,6 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.13.4" },
     { name = "pydantic-settings", specifier = ">=2.15.0" },
     { name = "pyodbc", specifier = ">=5.3.0" },
-    { name = "python-dotenv", specifier = ">=1.2.3" },
     { name = "sqlalchemy", specifier = ">=2.0.52" },
 ]
 

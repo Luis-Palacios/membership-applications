@@ -17,14 +17,14 @@ This project uses [uv](https://docs.astral.sh/uv/) with the `uv_build` backend (
   silently *uninstall* `fastapi`/`pyjwt`/etc. if they were previously synced in, since they're not a
   root-level dependency)
 - Run the console script (currently just the placeholder `main()`): `uv run membership-applications`
-- Run the actual membership-applications CLI logic: `uv run python -m membership_applications.cli.main`
-- Run the FastAPI development server (use for day-to-day local coding — auto-reloads, binds 127.0.0.1, ignores `PORT`/`WORKERS`/keep-alive/graceful-shutdown/`limit_concurrency`/`backlog` from `.env`, since it never calls `run.py`'s `uvicorn.run()`): `uv run --package membership-applications-api fastapi dev src\membership_applications\api\main.py`
-- Run the FastAPI production-style server (use whenever a change touches one of the uvicorn-level settings above and you need to see it actually take effect locally, not just for staging/production/Docker — no auto-reload, binds 0.0.0.0, reads `PORT`, `WORKERS`, keep-alive/graceful-shutdown timeouts, and `limit_concurrency`/`backlog` from `.env`): `uv run --package membership-applications-api python -m membership_applications.api.run` (invokes `uvicorn` directly rather than `fastapi run`, since `fastapi run` can't set those uvicorn-level flags)
+- Run the actual membership-applications CLI logic: `uv run --env-file .env python -m membership_applications.cli.main`
+- Run the FastAPI development server (use for day-to-day local coding — auto-reloads, binds 127.0.0.1, ignores `PORT`/`WORKERS`/keep-alive/graceful-shutdown/`limit_concurrency`/`backlog` from `.env`, since it never calls `run.py`'s `uvicorn.run()`): `uv run --env-file .env --package membership-applications-api fastapi dev src\membership_applications\api\main.py`
+- Run the FastAPI production-style server (use whenever a change touches one of the uvicorn-level settings above and you need to see it actually take effect locally, not just for staging/production/Docker — no auto-reload, binds 0.0.0.0, reads `PORT`, `WORKERS`, keep-alive/graceful-shutdown timeouts, and `limit_concurrency`/`backlog` from `.env`): `uv run --env-file .env --package membership-applications-api python -m membership_applications.api.run` (invokes `uvicorn` directly rather than `fastapi run`, since `fastapi run` can't set those uvicorn-level flags)
 - Build the package: `uv build`
 - Lint: `uv run ruff check .` (config in `ruff.toml`); pre-commit hooks are set up via `.pre-commit-config.yaml`
 - Type-check: `uv run ty check` ([`ty`](https://github.com/astral-sh/ty), Astral's type checker — no separate config file yet)
 
-Run commands from the repository root so the data layer loads the root `.env`.
+Run commands from the repository root. Settings never read `.env` themselves (prod config comes only from real env vars), so commands that load settings need `uv run --env-file .env`; lint and type-check don't.
 
 ## Architecture
 
@@ -37,7 +37,7 @@ Run commands from the repository root so the data layer loads the root `.env`.
 - `src/membership_applications/api/run.py` — production-style entry point (`python -m membership_applications.api.run`, no auto-reload): calls `uvicorn.run()` directly so `port`, `workers`, keep-alive/graceful-shutdown timeouts, and `limit_concurrency`/`backlog` from `ApiSettings` take effect. Use `fastapi dev` instead for local coding.
 - `src/membership_applications/data/query_helpers.py` — `first_as`/`all_as` map SQLAlchemy `Select` rows onto a dataclass or `NamedTuple` by column name.
 - `src/membership_applications/data/assimilation/` — SQLAlchemy data layer for the existing SQL Server DB (the "assimilation" system):
-  - `config.py` — pydantic-settings `Settings`, loaded from the root `.env` when commands run from the repository root (see `.env.example`; requires `ASSIMILATION_DATABASE_URL`). Also holds the connection-pool settings (`db_pool_size`, `db_max_overflow`, `db_pool_pre_ping`, `db_pool_use_lifo`) consumed by `database.py`.
+  - `config.py` — pydantic-settings `Settings`, read from environment variables only (locally via `uv run --env-file .env`) (see `.env.example`; requires `ASSIMILATION_DATABASE_URL`). Also holds the connection-pool settings (`db_pool_size`, `db_max_overflow`, `db_pool_pre_ping`, `db_pool_use_lifo`) consumed by `database.py`.
   - `database.py` — SQLAlchemy `engine` (pool sized/tuned from `Settings`; `pool_reset_on_return="rollback"` is fixed, not configurable), `SessionLocal`, declarative `Base`.
   - `models/membership_applications/` — the `MembershipApplication` model (maps to existing `MemberShipApplications` table), `queries.py` (typed `Select` builders), `services.py` (business/query-window logic, e.g. the 30-day recent-applications window), and `results.py` (`NamedTuple` result types).
   - `models/person/person.py` — the `Person` model (maps to the existing `Persona` table), joined against membership applications.
