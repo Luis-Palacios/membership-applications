@@ -1,7 +1,7 @@
 from typing import Literal
 
 from pydantic import AnyUrl
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -38,8 +38,8 @@ class Settings(BaseSettings):
     # connections warm and lets the rest recycle or idle out sooner.
     db_pool_use_lifo: bool = True
 
-    model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore"
-    )
+    # Values come only from real environment variables, never from a .env file: in prod, config
+    # must come from the task definition alone. Locally, the dev commands load .env through
+    # `uv run --env-file .env` (see README).
 
 settings = Settings()

@@ -35,26 +35,26 @@ See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Setup
 
-1. `uv sync` — installs root package and workspace dependencies (including the FastAPI workspace member)
+1. `uv sync --all-packages` — installs root package and workspace dependencies (including the FastAPI workspace member; plain `uv sync` leaves it out)
 2. Copy the root `.env.example` to the root `.env` and set `ASSIMILATION_DATABASE_URL`
 
 ## Running
 
-Run these commands from the repository root so they load the root `.env`.
+Run these commands from the repository root. The app never reads `.env` itself: settings come only from real environment variables, so production config comes from the task definition alone. Locally, `uv run --env-file .env` loads the file into the environment first (a variable already set in the shell wins over the file).
 
 ```powershell
 # CLI — list recent membership applications
-uv run python -m membership_applications.cli.main
+uv run --env-file .env python -m membership_applications.cli.main
 
 # FastAPI dev server — use this for day-to-day local development.
 # Auto-reloads on file changes; binds 127.0.0.1:8000; does NOT read
 # PORT / keep-alive / graceful-shutdown from .env (fastapi dev doesn't expose those).
-uv run --package membership-applications-api fastapi dev src\membership_applications\api\main.py
+uv run --env-file .env --package membership-applications-api fastapi dev src\membership_applications\api\main.py
 
 # FastAPI production-style server — no auto-reload. Use this to run/test the app
 # the way it'll behave in staging, production, or Docker (reads PORT, keep-alive
 # and graceful-shutdown timeouts from .env; binds 0.0.0.0).
-uv run --package membership-applications-api python -m membership_applications.api.run
+uv run --env-file .env --package membership-applications-api python -m membership_applications.api.run
 
 uv run ty check # check typing
 uv run ruff check # check linting
