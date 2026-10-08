@@ -619,17 +619,27 @@ name = "membership-applications-api"
 version = "0.1.0"
 source = { virtual = "src/membership_applications/api" }
 dependencies = [
-    { name = "fastapi", extra = ["standard"] },
+    { name = "fastapi" },
     { name = "limits" },
     { name = "pyjwt", extra = ["crypto"] },
+    { name = "uvicorn" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "fastapi", extra = ["standard"] },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "fastapi", extras = ["standard"], specifier = ">=0.141.1" },
+    { name = "fastapi", specifier = ">=0.141.1" },
     { name = "limits", specifier = ">=5.8.0" },
     { name = "pyjwt", extras = ["crypto"], specifier = ">=2.10.1" },
+    { name = "uvicorn", specifier = ">=0.52.4" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "fastapi", extras = ["standard"], specifier = ">=0.141.1" }]
 
 [[package]]
 name = "nodeenv"
