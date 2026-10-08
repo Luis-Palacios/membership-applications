@@ -1,0 +1,36 @@
+# Docker sends everything not excluded here to the build. Unlike .gitignore, patterns are anchored
+# to the context root and * doesn't cross /, so use **/ for "at any depth". Every line should match
+# something that exists in this repo.
+
+# Secrets, at any depth and in any variant (.env, .env.local, .env.prod, ...). The image doesn't
+# need .env.example either: config comes only from real env vars.
+**/.env*
+
+# Full history, including any secret ever committed and later deleted. It also changes on every
+# commit, which would invalidate the COPY layer.
+.git
+
+# Local environment, caches and build output. The image builds its own .venv; a Windows one copied
+# in would be useless (Scripts/, .exe files, Windows paths).
+.venv
+**/__pycache__
+**/*.py[oc]
+.ruff_cache
+dist
+
+# Docker's own files and dev-only tool config: not needed in the image, and leaving them out means
+# editing them doesn't invalidate the COPY layer (and force a full reinstall).
+Dockerfile
+.dockerignore
+.editorconfig
+.gitattributes
+.gitignore
+.pre-commit-config.yaml
+ruff.toml
+
+# Docs and agent/CI config.
+.github
+.agents
+.claude
+docs
+CLAUDE.md
