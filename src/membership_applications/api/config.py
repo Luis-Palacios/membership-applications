@@ -1,7 +1,9 @@
 from typing import Annotated
 
 from pydantic import field_validator
-from pydantic_settings import BaseSettings, NoDecode
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+
+from membership_applications.env_file import ENV_FILE
 
 
 class ApiSettings(BaseSettings):
@@ -89,9 +91,8 @@ class ApiSettings(BaseSettings):
     # take effect under `fastapi dev` too, not just run.py.
     thread_pool_size: int = 40
 
-    # Values come only from real environment variables, never from a .env file: in prod, config
-    # must come from the task definition alone. Locally, the dev commands load .env through
-    # `uv run --env-file .env` (see README).
+    # Same .env handling as the data layer's Settings (see env_file.py).
+    model_config = SettingsConfigDict(env_file=ENV_FILE, env_file_encoding="utf-8", extra="ignore")
 
     @field_validator("cors_allowed_origins", mode="before")
     @classmethod
