@@ -2,8 +2,8 @@
 
 ## Commands
 
-Run commands from the repository root. Settings never read `.env` themselves (prod config comes only
-from real env vars), so commands that load settings use `uv run --env-file .env`.
+Run commands from the repository root so settings read the root `.env` (skipped when `ENVIRONMENT`
+is `staging` or `production` in the real environment; see `env_file.py`).
 
 - Install or refresh all workspace dependencies: `uv sync --all-packages`. Plain `uv sync` omits the
   API workspace member and can remove its dependencies.
@@ -15,11 +15,11 @@ from real env vars), so commands that load settings use `uv run --env-file .env`
   exists. Add the appropriate `uv run <runner> path\to\test.py::test_name` command here when tests
   are introduced.
 - The `membership-applications` script is still a placeholder. Run the implemented CLI with
-  `uv run --env-file .env python -m membership_applications.cli.main`.
+  `uv run python -m membership_applications.cli.main`.
 - Start the API for day-to-day development with
-  `uv run --env-file .env --package membership-applications-api fastapi dev src\membership_applications\api\main.py`.
+  `uv run --package membership-applications-api fastapi dev src\membership_applications\api\main.py`.
   For production-style behavior, including configured Uvicorn settings, use
-  `uv run --env-file .env --package membership-applications-api python -m membership_applications.api.run`.
+  `uv run --package membership-applications-api python -m membership_applications.api.run`.
 
 ## Architecture
 
@@ -27,8 +27,8 @@ from real env vars), so commands that load settings use `uv run --env-file .env`
   Its current implementation is a synchronous SQL Server assimilation data layer consumed by a CLI
   and a FastAPI workspace member at `src/membership_applications/api`. The API has its own
   `pyproject.toml`; keep FastAPI-specific dependencies and configuration there.
-- Settings come from environment variables only (locally, `.env` via `uv run --env-file .env`);
-  start with `.env.example`. Importing the assimilation layer
+- Settings load from env vars and, outside staging/production, the root `.env`; start with
+  `.env.example`. `ENVIRONMENT` is required, and `DEBUG` defaults to `False`. Importing the assimilation layer
   requires `ASSIMILATION_DATABASE_URL`. Never commit credentials.
 - `data/assimilation/database.py` owns the SQLAlchemy engine, `SessionLocal`, and declarative
   `Base`. The CLI owns session lifetime with a context manager; FastAPI routes receive sessions from

@@ -1,12 +1,18 @@
-from typing import Literal
+from typing import Literal, Self
 
-from pydantic import AnyUrl
-from pydantic_settings import BaseSettings
+from pydantic import AnyUrl, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from membership_applications.env_file import ENV_FILE
 
 
 class Settings(BaseSettings):
-    environment: Literal["local", "staging", "production"] = "local"
-    debug: bool = True
+    # Required, with no default, so a deployment that forgets it fails at startup instead of
+    # silently running as "local" (which exposes /docs).
+    environment: Literal["local", "staging", "production"]
+    # Fails closed: a deployment that forgets DEBUG gets no tracebacks in responses, no DEBUG
+    # logging and no SQL echo (which logs bound parameters).
+    debug: bool = False
 
     assimilation_database_url: AnyUrl
 
@@ -38,8 +44,17 @@ class Settings(BaseSettings):
     # connections warm and lets the rest recycle or idle out sooner.
     db_pool_use_lifo: bool = True
 
-    # Values come only from real environment variables, never from a .env file: in prod, config
-    # must come from the task definition alone. Locally, the dev commands load .env through
-    # `uv run --env-file .env` (see README).
+    # See env_file.py for when .env is read. extra="ignore": ApiSettings reads the same .env, so
+    # each class sees the other's keys.
+    model_config = SettingsConfigDict(env_file=ENV_FILE, env_file_encoding="utf-8", extra="ignore")
+
+    @model_validator(mode="after")
+    def reject_debug_in_production(self) -> Self:
+        # Safe defaults only cover a *missing* DEBUG; this catches a wrong one, e.g. DEBUG=True
+        # left in the task definition after an incident.
+        if self.environment == "production" and self.debug:
+            raise ValueError("DEBUG must be False when ENVIRONMENT is production")
+        return self
+
 
 settings = Settings()
